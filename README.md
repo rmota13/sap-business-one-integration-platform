@@ -239,11 +239,9 @@ A documentação pública apresenta apenas a arquitetura conceitual, as tecnolog
 - [x] Alertas e decisões via Microsoft Teams
 - [x] Integração Nuvemshop
 - [x] Cancelamento automatizado
+- [x] Painel consolidado de observabilidade
 - [ ] Integração Shopee
-- [ ] Painel consolidado de observabilidade
 - [ ] Métricas operacionais e indicadores de SLA
-- [ ] Expansão para novos marketplaces
-
 ---
 
 ## Próximas evoluções
