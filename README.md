@@ -2,95 +2,73 @@
 
 > Plataforma de integração ponta a ponta entre marketplaces e SAP Business One, da captura do pedido à automação financeira, com conciliação como próxima fase arquitetural.
 
-<p align="center">
-  <img src="./docs/platform-architecture.svg" alt="Arquitetura da SAP Commerce Integration Platform" width="100%" />
-</p>
+<p align="center"><img src="./docs/platform-architecture.svg" alt="Arquitetura da plataforma" width="100%" /></p>
 
 **Status:** Fase 1 em produção · Fase 2 entregue e em rollout produtivo · Fase 3 em desenvolvimento  
 **Autor:** Rodrigo Mota de Oliveira  
 **Stack:** SAP Business One Service Layer · n8n · SQL Server · Python/FastAPI · Docker · Microsoft Teams
 
-> Este repositório apresenta uma versão pública e sanitizada de uma plataforma real. Credenciais, endpoints, dados corporativos, nomes internos e regras proprietárias foram removidos ou substituídos por exemplos fictícios.
+> Repositório público e sanitizado de uma plataforma real. Credenciais, endpoints, dados corporativos e regras proprietárias foram removidos.
 
 ## O problema
 
-Em operações de e-commerce, o pedido nasce no canal de venda, mas o ERP precisa receber dados consistentes de cliente, itens, entrega e pagamento. Depois, o financeiro ainda precisa registrar os documentos correspondentes e reconciliar o valor efetivamente liquidado pelos marketplaces e provedores de pagamento.
-
-Sem uma camada de integração, esse ciclo depende de digitação, planilhas, conferências manuais e correções tardias.
+Pedidos de e-commerce precisam chegar ao ERP com cliente, itens, entrega e pagamento consistentes. Depois, o financeiro ainda precisa registrar documentos e reconciliar o valor efetivamente liquidado por marketplaces e provedores. Sem uma camada de integração, esse ciclo depende de digitação, planilhas e conferências manuais.
 
 ## A solução
 
-A plataforma foi estruturada como um produto evolutivo, e não como um workflow isolado:
-
 ```text
-Marketplace
-  → ingestão e normalização
-  → validações e regras de negócio
-  → parceiro de negócios no SAP
-  → pedido de venda
-  → adiantamento
-  → recebimento e referência financeira
-  → conciliação por API ou arquivo
-  → exceções, auditoria e reprocessamento
+Marketplace → normalização → validações → Business Partner → pedido de venda
+→ adiantamento → recebimento → referência financeira → conciliação → exceções e auditoria
 ```
 
 ### Fase 1: Integração comercial
 
-**Status: produção**
+**Produção**
 
-- Captura de pedidos por webhook e polling.
-- Normalização para um modelo canônico.
+- Captura por webhook e polling.
+- Modelo canônico de pedidos.
 - Validação de cliente, endereço, itens e entrega.
 - Criação ou resolução do Business Partner.
-- Criação automática do Pedido de Venda no SAP Business One.
-- Tratamento de kits, combos, cancelamentos e inconsistências cadastrais.
+- Criação automática do Pedido de Venda.
+- Kits, combos, cancelamentos e inconsistências cadastrais.
 - Idempotência, logs, quarentena e reprocessamento.
 
 ### Fase 2: Integração financeira
 
-**Status: entregue e em rollout produtivo**
+**Entregue e em rollout produtivo**
 
-- Resolução e mapeamento dos meios de pagamento.
-- Criação de adiantamento vinculado ao pedido.
+- Mapeamento dos meios de pagamento.
+- Criação de adiantamento.
 - Criação de recebimento.
 - Registro de cartão ou referência de transação.
 - Testes de retomada e idempotência.
-- Feature flag para ativação controlada.
-- Monitoramento das primeiras semanas de produção.
+- Feature flag e monitoramento controlado.
 
 ### Fase 3: Conciliação financeira
 
-**Status: desenvolvimento**
+**Desenvolvimento**
 
-- Ingestão de liquidações dos marketplaces e provedores de pagamento.
-- Staging financeiro separado do fluxo transacional.
-- Matching automático contra documentos esperados no ERP.
-- Tratamento de taxas, descontos, pagamentos parciais e divergências.
-- Alertas somente para exceções.
+- Ingestão de liquidações por API ou arquivo.
+- Staging financeiro.
+- Matching automático contra o ERP.
+- Taxas, descontos, pagamentos parciais e divergências.
+- Alertas apenas para exceções.
 - Auditoria e reprocessamento seguro.
-
-A Fase 3 não é apresentada como concluída. Sua ativação depende da estabilidade e consistência dos dados produzidos pelas fases anteriores.
 
 ## Arquitetura
 
 ```mermaid
 flowchart LR
-    subgraph Channels[Canais de venda]
-        A[Marketplace A]
-        B[Marketplace B]
-        C[Marketplace C]
-    end
-    A --> O[Orquestrador]
-    B --> O
-    C --> O
-    O --> V[Validação e normalização]
+    A[Marketplace A] --> O[Orquestrador]
+    B[Marketplace B] --> O
+    C[Marketplace C] --> O
+    O --> V[Validação]
     V --> D[Serviços de domínio]
     D --> SL[SAP Service Layer]
     SL --> ERP[SAP Business One]
     D --> DB[(Banco de integração)]
     O --> Q[Quarentena]
     D --> M[Observabilidade]
-    Q --> M
     P[Provedor de pagamento] --> R[Motor de conciliação]
     ERP --> R
     R --> DB
@@ -98,16 +76,15 @@ flowchart LR
 
 ## Engineering highlights
 
-- Processamento idempotente por chave externa.
-- Correlation ID em todas as etapas.
-- Retry limitado, com backoff e classificação de falhas.
-- Modelo canônico para desacoplar canais e ERP.
-- Quarentena para casos que exigem decisão humana.
+- Idempotência por chave externa.
+- Correlation ID ponta a ponta.
+- Retry limitado com backoff.
+- Modelo canônico desacoplado do ERP.
+- Quarentena para decisão humana.
 - Feature flags por canal e fase.
-- Staging financeiro fora das tabelas transacionais do ERP.
+- Staging financeiro separado.
 - Monitoramento orientado a exceções.
 - Audit trail por pedido e documento financeiro.
-- Separação entre orquestração, domínio e transporte.
 
 ## Stack
 
@@ -118,42 +95,28 @@ flowchart LR
 | Serviços | Python · FastAPI |
 | Dados | SQL Server · staging · stored procedures |
 | Infraestrutura | Docker · Linux VPS · Redis |
-| Observabilidade | Logs estruturados · correlation IDs · alertas |
-| Operação assistida | Microsoft Teams · Adaptive Cards |
+| Operação | Microsoft Teams · Adaptive Cards |
 
 ## Documentação
 
-- [Arquitetura detalhada](./docs/architecture.md)
-- [Fluxos ponta a ponta](./docs/business-flow.md)
+- [Arquitetura](./docs/architecture.md)
+- [Fluxos](./docs/business-flow.md)
 - [Decisões arquiteturais](./docs/decisions.md)
-- [Segurança e sanitização](./docs/security.md)
+- [Segurança](./docs/security.md)
 - [Observabilidade](./docs/observability.md)
 - [Roadmap](./docs/roadmap.md)
-- [Case para portfólio](./docs/portfolio-case.md)
-- [Versão para LinkedIn](./docs/linkedin-project.md)
+- [Case de portfólio](./docs/portfolio-case.md)
+- [Versões para LinkedIn](./docs/linkedin-project.md)
 
-## Resultados e impacto
+## Impacto
 
-- Eliminação de etapas manuais na criação de pedidos.
-- Redução do risco de duplicidade e inconsistência cadastral.
-- Padronização da integração entre múltiplos canais e o ERP.
-- Rastreabilidade de cada pedido por etapa.
-- Tratamento estruturado de exceções sem bloquear todo o fluxo.
-- Automação do ciclo financeiro após a criação do pedido.
-- Base arquitetural pronta para conciliação financeira.
-
-Não são apresentados valores financeiros inventados. O impacto comprovado é operacional: menor retrabalho, menor dependência de lançamento manual, maior velocidade e maior confiabilidade.
-
-## Roadmap resumido
-
-| Entrega | Status |
-|---|---|
-| Fundação e integração comercial | ✅ Produção |
-| Idempotência, quarentena e reprocessamento | ✅ Produção |
-| Integração financeira | ✅ Entregue / rollout |
-| Conector adicional | 🟡 Dependente de credenciamento |
-| Conciliação automática | 🔶 Desenvolvimento |
-| Métricas de SLA e painel executivo | 🔶 Roadmap |
+- Eliminação de etapas manuais.
+- Menor risco de duplicidade e inconsistência cadastral.
+- Integração padronizada entre canais e ERP.
+- Rastreabilidade por etapa.
+- Exceções tratadas sem bloquear todo o fluxo.
+- Automação do ciclo financeiro.
+- Base preparada para conciliação.
 
 ## Autor
 
@@ -165,4 +128,4 @@ Dados, Business Intelligence, Integrações e Automação Corporativa
 
 ## Aviso
 
-SAP, SAP Business One e as demais marcas citadas pertencem aos seus respectivos proprietários. Este repositório é um case técnico independente e não representa documentação oficial da SAP, dos marketplaces ou da empresa onde a solução original foi desenvolvida.
+Este é um case técnico independente e não representa documentação oficial da SAP, dos marketplaces ou da empresa onde a solução original foi desenvolvida.
