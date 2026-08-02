@@ -1,0 +1,20 @@
+{
+  "correlation_id": "6d263e4a-demo-4cb6-9c6f-000000000001",
+  "channel": "marketplace_a",
+  "external_order_id": "ORDER-2026-000123",
+  "sap_order": {
+    "doc_entry": 10001,
+    "doc_num": 50001
+  },
+  "down_payment": {
+    "status": "created",
+    "doc_entry": 11001,
+    "amount": 424.80
+  },
+  "incoming_payment": {
+    "status": "created",
+    "doc_entry": 12001,
+    "transaction_reference": "TX-DEMO-98765"
+  },
+  "idempotency_status": "completed"
+}
