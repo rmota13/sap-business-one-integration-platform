@@ -1,293 +1,231 @@
-# SAP Business One Integration Platform
+# SAP Commerce Integration Platform
 
-### Mercado Livre • Nuvemshop • Shopee → SAP Business One
-
-Plataforma corporativa de integração multi-marketplace desenvolvida para automatizar o ciclo completo de pedidos entre **Mercado Livre**, **Nuvemshop**, **Shopee** e o **SAP Business One**.
-
-A solução combina **Service Layer**, **n8n**, **FastAPI**, **Python**, **SQL Server** e **Microsoft Teams** para eliminar lançamentos manuais, reduzir falhas operacionais e criar uma base escalável para novos canais de venda.
+> Plataforma de integração ponta a ponta entre marketplaces e SAP Business One, da captura do pedido à automação financeira, com conciliação como próxima fase arquitetural.
 
 <p align="center">
-  <strong>SAP Business One • Service Layer • n8n • FastAPI • Python • SQL Server • Microsoft Teams</strong>
+  <img src="./docs/platform-architecture.svg" alt="Arquitetura da SAP Commerce Integration Platform" width="100%" />
 </p>
 
-> Este repositório apresenta uma visão pública e sanitizada da solução. Código-fonte, credenciais, endpoints, estruturas internas, dados corporativos e regras proprietárias permanecem privados.
+**Status:** Fase 1 em produção · Fase 2 entregue e em rollout produtivo · Fase 3 em desenvolvimento  
+**Autor:** Rodrigo Mota de Oliveira  
+**Stack:** SAP Business One Service Layer · n8n · SQL Server · Python/FastAPI · Docker · Microsoft Teams
 
----
+> Este repositório apresenta uma versão pública e sanitizada de uma plataforma real. Credenciais, endpoints, dados corporativos, nomes internos e regras proprietárias foram removidos ou substituídos por exemplos fictícios.
 
-## Visão geral
+## O problema
 
-A plataforma recebe eventos dos marketplaces, consulta os dados completos do pedido, normaliza as informações, aplica regras de negócio, sincroniza clientes e cria automaticamente o Pedido de Venda no SAP Business One.
+Em operações de e-commerce, o pedido nasce no canal de venda, mas o ERP precisa receber dados consistentes de cliente, itens, entrega e pagamento. Depois, o financeiro ainda precisa registrar os documentos correspondentes e reconciliar o valor efetivamente liquidado pelos marketplaces e provedores de pagamento.
 
-Também contempla tratamento de inconsistências, cancelamentos, reprocessamento seguro, prevenção de duplicidades, monitoramento operacional e decisões assistidas via Microsoft Teams.
+Sem uma camada de integração, esse ciclo depende de digitação, planilhas, conferências manuais e correções tardias.
+
+## A solução
+
+A plataforma foi estruturada como um produto evolutivo, e não como um workflow isolado:
+
+```text
+Marketplace
+  → ingestão e normalização
+  → validações e regras de negócio
+  → parceiro de negócios no SAP
+  → pedido de venda
+  → adiantamento
+  → recebimento e referência financeira
+  → conciliação por API ou arquivo
+  → exceções, auditoria e reprocessamento
+```
+
+## Fases
+
+### Fase 1: Integração comercial
+
+**Status: produção**
+
+- Captura de pedidos por webhook e polling.
+- Normalização para um modelo canônico.
+- Validação de cliente, endereço, itens e entrega.
+- Criação ou resolução do Business Partner.
+- Criação automática do Pedido de Venda no SAP Business One.
+- Tratamento de kits, combos, cancelamentos e inconsistências cadastrais.
+- Idempotência, logs, quarentena e reprocessamento.
+
+### Fase 2: Integração financeira
+
+**Status: entregue e em rollout produtivo**
+
+- Resolução e mapeamento dos meios de pagamento.
+- Criação de adiantamento vinculado ao pedido.
+- Criação de recebimento.
+- Registro de cartão ou referência de transação.
+- Testes de retomada e idempotência.
+- Feature flag para ativação controlada.
+- Monitoramento das primeiras semanas de produção.
+
+### Fase 3: Conciliação financeira
+
+**Status: desenvolvimento**
+
+- Ingestão de liquidações dos marketplaces e provedores de pagamento.
+- Staging financeiro separado do fluxo transacional.
+- Matching automático contra documentos esperados no ERP.
+- Tratamento de taxas, descontos, pagamentos parciais e divergências.
+- Alertas somente para exceções.
+- Auditoria e reprocessamento seguro.
+
+A Fase 3 não é apresentada como concluída. Sua ativação depende da estabilidade e consistência dos dados produzidos pelas fases anteriores.
+
+## Arquitetura
 
 ```mermaid
 flowchart LR
-    ML[Mercado Livre]
-    NS[Nuvemshop]
-    SP[Shopee]
+    subgraph Channels[Canais de venda]
+        A[Marketplace A]
+        B[Marketplace B]
+        C[Marketplace C]
+    end
 
-    ML --> INTEGRATION[Integration Platform]
-    NS --> INTEGRATION
-    SP --> INTEGRATION
+    A --> O[Orquestrador de integração]
+    B --> O
+    C --> O
 
-    INTEGRATION --> RULES[Business Rules Engine]
-    RULES --> ADAPTER[SAP Adapter]
-    ADAPTER --> SL[SAP Business One Service Layer]
-    SL --> SAP[SAP Business One]
+    O --> V[Validação e normalização]
+    V --> D[Serviços de domínio]
+    D --> SL[SAP Business One Service Layer]
+    SL --> ERP[SAP Business One]
 
-    INTEGRATION --> MONITORING[Monitoring & Alerts]
-    MONITORING --> TEAMS[Microsoft Teams]
+    D --> DB[(Banco de integração)]
+    O --> Q[Quarentena]
+    D --> M[Observabilidade e alertas]
+    Q --> M
+
+    P[API do provedor de pagamento] --> R[Motor de conciliação]
+    ERP --> R
+    R --> DB
+    R --> M
 ```
 
----
+## Engineering highlights
 
-## Status por canal
+- Processamento idempotente por chave externa.
+- Correlation ID em todas as etapas.
+- Retry limitado, com backoff e classificação de falhas.
+- Modelo canônico para desacoplar canais e ERP.
+- Quarentena para casos que exigem decisão humana.
+- Feature flags por canal e por fase.
+- Staging financeiro fora das tabelas transacionais do ERP.
+- Monitoramento orientado a exceções.
+- Audit trail por pedido e documento financeiro.
+- Separação entre orquestração, domínio e transporte.
 
-| Canal | Status | Escopo público |
-|---|---|---|
-| **Mercado Livre** | ✅ Produção estável | Pedidos, clientes, cancelamentos, kits, combos, quarentena e alertas |
-| **Nuvemshop** | ✅ Produção estável | Pedidos, clientes, cancelamentos, combos e regras compartilhadas |
-| **Shopee** | 🚧 Credenciamento | Conector previsto sobre a mesma arquitetura central |
+## Decisões arquiteturais
 
----
+| Decisão | Motivo |
+|---|---|
+| n8n como orquestrador | Agilidade para integrações, agendamento, filas e tratamento visual do fluxo |
+| Service Layer para escrita no SAP | Preserva validações e regras da camada de aplicação do ERP |
+| Banco de integração separado | Permite staging, auditoria, retry e idempotência sem acoplar o controle ao ERP |
+| Origem do pedido separada da liquidação | O canal que vende pode não ser a empresa que liquida o pagamento |
+| Alertas somente por exceção | Reduz fadiga operacional e destaca o que realmente exige ação |
+| Feature flags | Permitem rollout progressivo e reversível |
 
-## Principais capacidades
-
-- Integração multi-marketplace
-- Processamento orientado a eventos
-- Criação automática de clientes e pedidos
-- Sincronização com SAP Business One via Service Layer
-- Tratamento de divergências cadastrais
-- Quarentena para validação humana
-- Cancelamento automático e seguro
-- Idempotência em operações críticas
-- Reprocessamento controlado
-- Controle de concorrência
-- Monitoramento operacional
-- Alertas no Microsoft Teams
-- Logs centralizados
-- Arquitetura preparada para expansão
-
----
-
-## Fluxo operacional
-
-```mermaid
-sequenceDiagram
-    participant Marketplace
-    participant Integration as Integration Platform
-    participant Rules as Business Rules
-    participant Adapter as SAP Adapter
-    participant SAP as SAP Business One
-    participant Teams as Microsoft Teams
-
-    Marketplace->>Integration: Evento de pedido
-    Integration->>Marketplace: Consulta dos dados completos
-    Integration->>Rules: Normalização e validação
-    Rules->>Adapter: Solicitação de integração
-    Adapter->>SAP: Sincronização de cliente
-    Adapter->>SAP: Criação do Pedido de Venda
-    SAP-->>Adapter: Retorno do documento
-    Adapter-->>Integration: Resultado do processamento
-    Integration->>Teams: Confirmação ou alerta operacional
-```
-
----
-
-## Tratamento de exceções
-
-Nem toda inconsistência deve interromper a operação ou exigir intervenção técnica.
-
-A plataforma separa automaticamente os cenários que podem ser resolvidos por regra daqueles que exigem decisão humana.
+## Fluxo de erro e reprocessamento
 
 ```mermaid
 flowchart TD
-    EVENT[Pedido recebido] --> VALIDATION{Dados válidos?}
-
-    VALIDATION -->|Sim| PROCESS[Processamento automático]
-    VALIDATION -->|Não| CLASSIFY{Pode ser resolvido automaticamente?}
-
-    CLASSIFY -->|Sim| AUTO[Correção por regra de negócio]
-    AUTO --> PROCESS
-
-    CLASSIFY -->|Não| QUARANTINE[Quarentena operacional]
-    QUARANTINE --> TEAMS[Decisão via Microsoft Teams]
-    TEAMS --> PROCESS
-
-    PROCESS --> SAP[Pedido criado no SAP Business One]
+    E[Evento recebido] --> I{Já processado?}
+    I -->|Sim| D[Descartar com segurança]
+    I -->|Não| V{Dados e regras válidos?}
+    V -->|Sim| P[Processar]
+    V -->|Não| Q[Quarentena]
+    P --> T{Falha temporária?}
+    T -->|Sim| R[Retry com backoff]
+    T -->|Não| X{Falha terminal?}
+    X -->|Sim| Q
+    R --> P
+    P --> C[Concluir e auditar]
+    Q --> H[Correção ou decisão humana]
+    H --> P
 ```
 
-Esse modelo reduz falhas silenciosas, evita bloqueios desnecessários e mantém rastreabilidade das decisões.
+## Stack
 
----
-
-## Arquitetura da solução
-
-A solução foi estruturada em camadas independentes para permitir manutenção, evolução e inclusão de novos canais sem duplicação das regras críticas do ERP.
-
-| Camada | Responsabilidade |
+| Camada | Tecnologias |
 |---|---|
-| **Marketplace Connectors** | Recepção e consulta de eventos dos canais |
-| **Workflow Orchestration** | Orquestração, validações e tratamento de exceções |
-| **Business Rules Engine** | Regras comerciais, fiscais e operacionais |
-| **SAP Adapter** | Interface segura e padronizada com o SAP Business One |
-| **Persistence Layer** | Controle de estado, idempotência e rastreabilidade |
-| **Monitoring Layer** | Logs, alertas e acompanhamento operacional |
+| ERP | SAP Business One · Service Layer |
+| Orquestração | n8n self-hosted |
+| Serviços | Python · FastAPI |
+| Dados | SQL Server · staging · stored procedures |
+| Infraestrutura | Docker · Linux VPS · Redis |
+| Observabilidade | Logs estruturados · correlation IDs · alertas |
+| Operação assistida | Microsoft Teams · Adaptive Cards |
 
----
+## Documentação
 
-## Tecnologias utilizadas
+- [Arquitetura detalhada](./docs/architecture.md)
+- [Fluxos ponta a ponta](./docs/business-flow.md)
+- [Decisões arquiteturais](./docs/decisions.md)
+- [Segurança e sanitização](./docs/security.md)
+- [Observabilidade](./docs/observability.md)
+- [Roadmap](./docs/roadmap.md)
+- [Case para portfólio](./docs/portfolio-case.md)
+- [Versão para LinkedIn](./docs/linkedin-project.md)
 
-| Tecnologia | Aplicação |
+## Estrutura pública
+
+```text
+/
+├── README.md
+├── docs/
+│   ├── architecture.md
+│   ├── business-flow.md
+│   ├── decisions.md
+│   ├── security.md
+│   ├── observability.md
+│   ├── roadmap.md
+│   ├── portfolio-case.md
+│   ├── linkedin-project.md
+│   └── platform-architecture.svg
+├── examples/
+│   ├── marketplace-order.json
+│   ├── financial-cycle.json
+│   └── settlement-record.json
+└── .github/workflows/markdown-links.yml
+```
+
+## Resultados e impacto
+
+- Eliminação de etapas manuais na criação de pedidos.
+- Redução do risco de duplicidade e inconsistência cadastral.
+- Padronização da integração entre múltiplos canais e o ERP.
+- Rastreabilidade de cada pedido por etapa.
+- Tratamento estruturado de exceções sem bloquear todo o fluxo.
+- Automação do ciclo financeiro após a criação do pedido.
+- Base arquitetural pronta para conciliação financeira.
+
+Não são apresentados valores financeiros inventados. O impacto comprovado é operacional: menor retrabalho, menor dependência de lançamento manual, maior velocidade e maior confiabilidade.
+
+## Roadmap resumido
+
+| Entrega | Status |
 |---|---|
-| **SAP Business One** | ERP corporativo |
-| **SAP Service Layer** | Integração oficial com o ERP |
-| **n8n** | Orquestração dos workflows |
-| **Python** | Regras, serviços e integração |
-| **FastAPI** | Camada de adaptação para o SAP |
-| **SQL Server** | Persistência e controle operacional |
-| **Microsoft Teams** | Alertas e decisões operacionais |
-| **Power Automate** | Entrega de cards e notificações |
-| **Docker** | Execução e isolamento de serviços |
-| **Redis** | Processamento em fila e escalabilidade |
+| Fundação e integração comercial | ✅ Produção |
+| Idempotência, quarentena e reprocessamento | ✅ Produção |
+| Integração financeira | ✅ Entregue / rollout |
+| Conector adicional | 🟡 Dependente de credenciamento |
+| Conciliação automática | 🔶 Desenvolvimento |
+| Métricas de SLA e painel executivo | 🔶 Roadmap |
 
----
+## Segurança
 
-## Desafios de engenharia resolvidos
-
-### Idempotência
-
-Marketplaces podem reenviar o mesmo evento diversas vezes. A plataforma garante que pedidos, clientes e cancelamentos não sejam processados em duplicidade.
-
-### Concorrência
-
-Requisições simultâneas são controladas para evitar criação duplicada de clientes, colisões de sessão e inconsistências transacionais.
-
-### Divergências cadastrais
-
-Quando os dados enviados pelo marketplace divergem dos dados existentes no ERP, o pedido pode ser direcionado para quarentena e validado por um responsável.
-
-### Resiliência
-
-Falhas temporárias não resultam em perda definitiva do pedido. Os eventos permanecem rastreáveis e podem ser reprocessados de forma segura.
-
-### Expansão multi-canal
-
-Os conectores dos marketplaces são independentes, enquanto as regras centrais de integração permanecem compartilhadas.
-
-### Kits e combinações de itens
-
-A solução trata cenários em que um anúncio representa múltiplas unidades ou diferentes itens, preservando quantidade, composição e valor total do pedido.
-
----
-
-## Resultados entregues
-
-- Redução do lançamento manual de pedidos
-- Menor risco de duplicidade
-- Padronização do cadastro de clientes
-- Centralização das regras de integração
-- Maior velocidade no processamento
-- Rastreabilidade ponta a ponta
-- Tratamento estruturado de exceções
-- Operação monitorada em tempo real
-- Base preparada para novos canais de venda
-
----
-
-## Marketplaces integrados
-
-### Mercado Livre
-
-Integração completa do pedido pago ao Pedido de Venda no SAP Business One, incluindo validação cadastral, processamento de itens, cancelamento e alertas operacionais.
-
-### Nuvemshop
-
-Integração de pedidos e cancelamentos com o mesmo núcleo de regras do ERP, preservando as particularidades do canal.
-
-### Shopee
-
-Conector planejado sobre a mesma arquitetura, com implantação condicionada às etapas de credenciamento e liberação da plataforma.
-
----
-
-## Segurança e privacidade
-
-Este repositório não contém:
-
-- Credenciais ou tokens
-- URLs privadas e endpoints internos
-- Dados de clientes ou dados corporativos
-- Nomes de servidores e ambientes
-- Estruturas proprietárias de banco
-- Queries internas
-- Workflows exportados
-- Código-fonte da operação
-- Regras fiscais ou comerciais confidenciais
-
-A documentação pública apresenta apenas a arquitetura conceitual, as tecnologias utilizadas, os problemas resolvidos e os resultados do projeto.
-
----
-
-## Roadmap
-
-- [x] Fundação da arquitetura
-- [x] Adapter de integração com SAP Business One
-- [x] Camada de persistência e idempotência
-- [x] Integração Mercado Livre
-- [x] Quarentena operacional
-- [x] Alertas e decisões via Microsoft Teams
-- [x] Integração Nuvemshop
-- [x] Cancelamento automatizado
-- [x] Painel consolidado de observabilidade
-- [ ] Integração Shopee
-- [ ] Métricas operacionais e indicadores de SLA
----
-
-## Próximas evoluções
-
-- Dashboard central de integrações
-- Indicadores de sucesso e falha por canal
-- Tempo médio de processamento
-- Gestão visual de reprocessamentos
-- Novos conectores de marketplace
-- Camada de configuração por empresa
-- Evolução para arquitetura multi-tenant
-
----
-
-## Sobre o projeto
-
-Este projeto foi desenvolvido como uma plataforma corporativa de integração, e não como um script isolado.
-
-A arquitetura combina automação de processos, integração de sistemas, regras de negócio, observabilidade e operação assistida, conectando **Mercado Livre**, **Nuvemshop** e **Shopee** ao **SAP Business One**.
-
-O case demonstra experiência prática em:
-
-- Integração de ERP
-- SAP Business One
-- Service Layer
-- APIs REST
-- Automação com n8n
-- Python e FastAPI
-- SQL Server
-- Arquitetura orientada a eventos
-- Integrações corporativas
-- Monitoramento operacional
-- Resiliência e idempotência
-
----
+A versão pública não contém credenciais, tokens, URLs internas, IPs, dados pessoais, documentos fiscais, nomes de servidores, workflows produtivos sem sanitização ou regras comerciais e fiscais proprietárias.
 
 ## Autor
 
-**Rodrigo Mota de Oliveira**
+**Rodrigo Mota de Oliveira**  
+Dados, Business Intelligence, Integrações e Automação Corporativa
 
-Business Systems • Automação Corporativa • Integração de Sistemas • SAP Business One • n8n • APIs • SQL • Power BI
-
----
+- GitHub: [@rmota13](https://github.com/rmota13)
+- Portfólio: [motainteligencia.com.br](https://motainteligencia.com.br)
 
 ## Aviso
 
-SAP, SAP Business One e demais marcas citadas pertencem aos seus respectivos proprietários.
-
-Este repositório é um case técnico independente e não representa documentação oficial dos marketplaces ou da SAP.
+SAP, SAP Business One e as demais marcas citadas pertencem aos seus respectivos proprietários. Este repositório é um case técnico independente e não representa documentação oficial da SAP, dos marketplaces ou da empresa onde a solução original foi desenvolvida.
