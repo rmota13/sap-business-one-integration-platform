@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">SAP Commerce Integration Platform</title>
+  <desc id="desc">Arquitetura ponta a ponta dos canais de venda ao SAP Business One e conciliação financeira.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#020D1F"/><stop offset="1" stop-color="#0D1B2A"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity=".28"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#00B4D8"/></marker>
+  </defs>
+  <rect width="1200" height="520" rx="28" fill="url(#bg)"/>
+  <text x="600" y="54" text-anchor="middle" fill="#fff" font-family="Inter,Segoe UI,Arial" font-size="28" font-weight="700">SAP Commerce Integration Platform</text>
+  <text x="600" y="82" text-anchor="middle" fill="#9CCBD6" font-family="Inter,Segoe UI,Arial" font-size="15">Order capture → ERP financial cycle → reconciliation</text>
+  <g font-family="Inter,Segoe UI,Arial" filter="url(#shadow)">
+    <g fill="#10283B" stroke="#00B4D8" stroke-width="2">
+      <rect x="40" y="145" width="170" height="75" rx="16"/><rect x="40" y="245" width="170" height="75" rx="16"/><rect x="40" y="345" width="170" height="75" rx="16"/>
+      <rect x="285" y="205" width="190" height="110" rx="18"/><rect x="550" y="205" width="190" height="110" rx="18"/>
+      <rect x="815" y="145" width="220" height="110" rx="18"/><rect x="815" y="315" width="220" height="110" rx="18"/>
+    </g>
+    <g fill="#fff" text-anchor="middle">
+      <text x="125" y="178" font-size="17" font-weight="700">Marketplace A</text><text x="125" y="200" fill="#9CCBD6" font-size="12">Webhook / API</text>
+      <text x="125" y="278" font-size="17" font-weight="700">Marketplace B</text><text x="125" y="300" fill="#9CCBD6" font-size="12">Webhook / polling</text>
+      <text x="125" y="378" font-size="17" font-weight="700">Marketplace C</text><text x="125" y="400" fill="#9CCBD6" font-size="12">Connector roadmap</text>
+      <text x="380" y="245" font-size="18" font-weight="700">Integration</text><text x="380" y="268" font-size="18" font-weight="700">Orchestrator</text><text x="380" y="293" fill="#2EC4B6" font-size="12">n8n · queue · retry</text>
+      <text x="645" y="245" font-size="18" font-weight="700">Domain Services</text><text x="645" y="270" fill="#9CCBD6" font-size="12">validation · idempotency</text><text x="645" y="290" fill="#9CCBD6" font-size="12">order · payment · audit</text>
+      <text x="925" y="185" font-size="18" font-weight="700">SAP Business One</text><text x="925" y="210" fill="#2EC4B6" font-size="12">Service Layer</text><text x="925" y="230" fill="#9CCBD6" font-size="12">order · down payment · receipt</text>
+      <text x="925" y="352" font-size="18" font-weight="700">Reconciliation Engine</text><text x="925" y="377" fill="#2EC4B6" font-size="12">Phase 3</text><text x="925" y="399" fill="#9CCBD6" font-size="12">settlement · matching · exception</text>
+    </g>
+  </g>
+  <g stroke="#00B4D8" stroke-width="3" fill="none" marker-end="url(#arrow)">
+    <path d="M210 182 C245 182 250 230 285 240"/><path d="M210 282 L285 265"/><path d="M210 382 C245 382 250 300 285 285"/>
+    <path d="M475 260 L550 260"/><path d="M740 245 L815 205"/><path d="M740 285 C775 300 780 355 815 365"/><path d="M925 315 L925 255"/>
+  </g>
+  <rect x="285" y="440" width="750" height="44" rx="12" fill="#071827" stroke="#2EC4B6" stroke-width="1"/>
+  <text x="660" y="468" text-anchor="middle" fill="#BDE8E2" font-family="Inter,Segoe UI,Arial" font-size="14">Integration DB · structured logs · quarantine · correlation IDs · monitoring</text>
+</svg>
