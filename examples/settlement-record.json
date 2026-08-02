@@ -1,0 +1,12 @@
+{
+  "settlement_source": "payment_provider_a",
+  "settlement_id": "SETTLEMENT-DEMO-001",
+  "external_order_id": "ORDER-2026-000123",
+  "settled_at": "2026-08-05T10:00:00Z",
+  "gross_amount": 424.80,
+  "fees": 18.35,
+  "net_amount": 406.45,
+  "currency": "BRL",
+  "matching_status": "pending",
+  "tolerance": 0.05
+}
