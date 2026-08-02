@@ -34,8 +34,6 @@ Marketplace
   → exceções, auditoria e reprocessamento
 ```
 
-## Fases
-
 ### Fase 1: Integração comercial
 
 **Status: produção**
@@ -82,25 +80,20 @@ flowchart LR
         B[Marketplace B]
         C[Marketplace C]
     end
-
-    A --> O[Orquestrador de integração]
+    A --> O[Orquestrador]
     B --> O
     C --> O
-
     O --> V[Validação e normalização]
     V --> D[Serviços de domínio]
-    D --> SL[SAP Business One Service Layer]
+    D --> SL[SAP Service Layer]
     SL --> ERP[SAP Business One]
-
     D --> DB[(Banco de integração)]
     O --> Q[Quarentena]
-    D --> M[Observabilidade e alertas]
+    D --> M[Observabilidade]
     Q --> M
-
-    P[API do provedor de pagamento] --> R[Motor de conciliação]
+    P[Provedor de pagamento] --> R[Motor de conciliação]
     ERP --> R
     R --> DB
-    R --> M
 ```
 
 ## Engineering highlights
@@ -110,41 +103,11 @@ flowchart LR
 - Retry limitado, com backoff e classificação de falhas.
 - Modelo canônico para desacoplar canais e ERP.
 - Quarentena para casos que exigem decisão humana.
-- Feature flags por canal e por fase.
+- Feature flags por canal e fase.
 - Staging financeiro fora das tabelas transacionais do ERP.
 - Monitoramento orientado a exceções.
 - Audit trail por pedido e documento financeiro.
 - Separação entre orquestração, domínio e transporte.
-
-## Decisões arquiteturais
-
-| Decisão | Motivo |
-|---|---|
-| n8n como orquestrador | Agilidade para integrações, agendamento, filas e tratamento visual do fluxo |
-| Service Layer para escrita no SAP | Preserva validações e regras da camada de aplicação do ERP |
-| Banco de integração separado | Permite staging, auditoria, retry e idempotência sem acoplar o controle ao ERP |
-| Origem do pedido separada da liquidação | O canal que vende pode não ser a empresa que liquida o pagamento |
-| Alertas somente por exceção | Reduz fadiga operacional e destaca o que realmente exige ação |
-| Feature flags | Permitem rollout progressivo e reversível |
-
-## Fluxo de erro e reprocessamento
-
-```mermaid
-flowchart TD
-    E[Evento recebido] --> I{Já processado?}
-    I -->|Sim| D[Descartar com segurança]
-    I -->|Não| V{Dados e regras válidos?}
-    V -->|Sim| P[Processar]
-    V -->|Não| Q[Quarentena]
-    P --> T{Falha temporária?}
-    T -->|Sim| R[Retry com backoff]
-    T -->|Não| X{Falha terminal?}
-    X -->|Sim| Q
-    R --> P
-    P --> C[Concluir e auditar]
-    Q --> H[Correção ou decisão humana]
-    H --> P
-```
 
 ## Stack
 
@@ -169,28 +132,6 @@ flowchart TD
 - [Case para portfólio](./docs/portfolio-case.md)
 - [Versão para LinkedIn](./docs/linkedin-project.md)
 
-## Estrutura pública
-
-```text
-/
-├── README.md
-├── docs/
-│   ├── architecture.md
-│   ├── business-flow.md
-│   ├── decisions.md
-│   ├── security.md
-│   ├── observability.md
-│   ├── roadmap.md
-│   ├── portfolio-case.md
-│   ├── linkedin-project.md
-│   └── platform-architecture.svg
-├── examples/
-│   ├── marketplace-order.json
-│   ├── financial-cycle.json
-│   └── settlement-record.json
-└── .github/workflows/markdown-links.yml
-```
-
 ## Resultados e impacto
 
 - Eliminação de etapas manuais na criação de pedidos.
@@ -213,10 +154,6 @@ Não são apresentados valores financeiros inventados. O impacto comprovado é o
 | Conector adicional | 🟡 Dependente de credenciamento |
 | Conciliação automática | 🔶 Desenvolvimento |
 | Métricas de SLA e painel executivo | 🔶 Roadmap |
-
-## Segurança
-
-A versão pública não contém credenciais, tokens, URLs internas, IPs, dados pessoais, documentos fiscais, nomes de servidores, workflows produtivos sem sanitização ou regras comerciais e fiscais proprietárias.
 
 ## Autor
 
