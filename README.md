@@ -23,7 +23,7 @@ Marketplace → normalização → validações → Business Partner → pedido 
 
 ### Fase 1: Integração comercial
 
-**Produção**
+**Produção** ✅
 
 - Captura por webhook e polling.
 - Modelo canônico de pedidos.
@@ -35,7 +35,7 @@ Marketplace → normalização → validações → Business Partner → pedido 
 
 ### Fase 2: Integração financeira
 
-**Entregue e em rollout produtivo**
+**Produção** ✅
 
 - Mapeamento dos meios de pagamento.
 - Criação de adiantamento.
