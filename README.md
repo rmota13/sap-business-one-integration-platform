@@ -4,7 +4,7 @@
 
 <p align="center"><img src="./docs/platform-architecture.svg" alt="Arquitetura da plataforma" width="100%" /></p>
 
-**Status:** Fase 1 em produção · Fase 2 entregue e em rollout produtivo · Fase 3 em desenvolvimento  
+**Status:** Fase 1 em produção · Fase 2 entregue e em produção · Fase 3 em desenvolvimento  
 **Autor:** Rodrigo Mota de Oliveira  
 **Stack:** SAP Business One Service Layer · n8n · SQL Server · Python/FastAPI · Docker · Microsoft Teams
 
