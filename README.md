@@ -46,7 +46,7 @@ Marketplace → normalização → validações → Business Partner → pedido 
 
 ### Fase 3: Conciliação financeira
 
-**Desenvolvimento**
+**Em desenvolvimento**
 
 - Ingestão de liquidações por API ou arquivo.
 - Staging financeiro.
