@@ -1,6 +1,6 @@
 # SAP Commerce Integration Platform
 
-> Plataforma de integração ponta a ponta entre marketplaces e SAP Business One — da captura do pedido à automação financeira, com conciliação como próxima fase arquitetural.
+> Plataforma de integração ponta a ponta entre marketplaces e SAP Business One da captura do pedido à automação financeira, com conciliação como próxima fase arquitetural.
 
 [![SAP Business One](https://img.shields.io/badge/SAP%20Business%20One-Service%20Layer-0FAAFF)](https://www.sap.com/products/erp/business-one.html)
 [![n8n](https://img.shields.io/badge/Orchestration-n8n-EA4B71)](https://n8n.io)
@@ -57,7 +57,7 @@ flowchart LR
 
 ## Fases da plataforma
 
-### Fase 1 — Integração comercial
+### Fase 1 - Integração comercial
 
 **Status: produção**
 
@@ -69,7 +69,7 @@ flowchart LR
 - Tratamento de kits, combos, cancelamentos e exceções cadastrais.
 - Logs, idempotência, quarentena e reprocessamento.
 
-### Fase 2 — Integração financeira
+### Fase 2 - Integração financeira
 
 **Status: implantação final**
 
@@ -80,7 +80,7 @@ flowchart LR
 - Retry controlado, feature flags e monitoramento por etapa.
 - Validação financeira ponta a ponta antes do go-live completo.
 
-### Fase 3 — Conciliação financeira
+### Fase 3 - Conciliação financeira
 
 **Status: design/desenvolvimento**
 
@@ -260,10 +260,10 @@ A revisão completa está em [SECURITY_REVIEW.md](./SECURITY_REVIEW.md).
 | Fundação arquitetural e camada de integração | ✅ Concluída |
 | Integração comercial multi-canal | ✅ Em produção |
 | Quarentena, idempotência e reprocessamento | ✅ Em produção |
-| Integração financeira | 🟡 Implantação final |
+| Integração financeira | ✅ Em produção |
 | Conector adicional de marketplace | 🟡 Dependente de credenciamento |
 | Conciliação financeira automatizada | 🔶 Design/desenvolvimento |
-| Métricas de SLA e painel executivo | 🔶 Roadmap |
+| Métricas de SLA e painel executivo | ✅ Em produção |
 
 ## Resultados e impacto
 
