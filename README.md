@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 **Status:** Fase 1 em produção · Fase 2 em implantação final · Fase 3 em design/desenvolvimento  
-**Autor:** Rodrigo Mota de Oliveira — Dados, Integrações e Automação Corporativa  
+**Autor:** Rodrigo Mota de Oliveira - Dados, Integrações e Automação Corporativa  
 **Stack de referência:** n8n, SAP Business One Service Layer, SQL Server, TypeScript/Node.js e Docker
 
 > Este repositório é uma representação pública e sanitizada de uma plataforma real. Credenciais, endpoints, dados corporativos, estruturas internas e regras proprietárias foram removidos ou substituídos por exemplos fictícios.
